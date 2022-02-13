@@ -1,25 +1,19 @@
 package h
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+)
 
-func init() {
-
-	html := E("test",
-		A{"test": true},
-		E("div", A{}),
-	)
-
-	fmt.Println(html)
+func Render(stringer fmt.Stringer) string {
+	return stringer.String()
 }
 
-func Render(data ...NodeData) string {
-	return ""
-}
-
-type Node struct {
+// Node
+type N struct {
 	tag        string
 	attributes A
-	content    []Renderer
+	content    []fmt.Stringer
 }
 
 func parseAttribute(name string, attribute interface{}) string {
@@ -34,44 +28,57 @@ func parseAttribute(name string, attribute interface{}) string {
 	}
 }
 
-func (n Node) Render() string {
-	result := "<" + n.tag
-	for name, attribute := range n.attributes {
-		result += parseAttribute(name, attribute)
+func (n N) String() string {
+	isElement := n.tag != ""
+	var b bytes.Buffer
+
+	if isElement {
+		b.WriteString("<" + n.tag)
+
+		for name, attribute := range n.attributes {
+			b.WriteString(parseAttribute(name, attribute))
+		}
+
+		if len(n.content) == 0 {
+			b.WriteString(" />")
+			return b.String()
+		}
+		b.WriteString(">")
 	}
-	if len(n.content) == 0 {
-		return result + " />"
-	}
+
 	for _, renderer := range n.content {
-		result += renderer.Render()
+		b.WriteString(renderer.String())
 	}
-	return result
+
+	if isElement {
+		b.WriteString("</" + n.tag + ">")
+	}
+
+	return b.String()
 }
 
-func (n Node) addToNode(node *Node) {
+func (n N) addToNode(node *N) {
 	node.content = append(node.content, n)
-}
-
-type Renderer interface {
-	Render() string
 }
 
 // Fragment
 type NodeData interface {
-	addToNode(*Node)
+	addToNode(*N)
 }
 
 // Attributes
 type A map[string]interface{}
 
-func (a A) addToNode(node *Node) {
+func (a A) addToNode(node *N) {
 	if node.attributes == nil {
 		node.attributes = A{}
 	}
+
 	for key, value := range a {
 		if value == nil {
 			continue
 		}
+
 		if key == "class" {
 			class, ok := node.attributes["class"]
 			if !ok {
@@ -81,29 +88,38 @@ func (a A) addToNode(node *Node) {
 			node.attributes["class"] = fmt.Sprintf("%v %v", class, value)
 			continue
 		}
+
 		node.attributes[key] = value
 	}
 }
 
-type Comment struct {
-	content string
+type T [1]string
+
+func (t T) String() string {
+	return t[0]
 }
 
-func (c Comment) Render() string {
-	return "<!-- " + c.content + " -->"
+func (t T) addToNode(node *N) {
+	node.content = append(node.content, t)
 }
 
-func (c Comment) addToNode(node *Node) {
+type Comment [1]string
+
+func (c Comment) String() string {
+	return "<!-- " + c[0] + " -->"
+}
+
+func (c Comment) addToNode(node *N) {
 	node.content = append(node.content, c)
 }
 
 // Comment
 func C(content string) NodeData {
-	return Comment{content: content}
+	return Comment{content}
 }
 
 // Element
-func E(selector string, data ...NodeData) NodeData {
+func E(selector string, data ...NodeData) N {
 	node := parseSelector(selector)
 
 	for _, datum := range data {
@@ -113,10 +129,48 @@ func E(selector string, data ...NodeData) NodeData {
 	return node
 }
 
-func parseSelector(selector string) Node {
-	n := Node{tag: selector}
-	attrs := A{}
-	attrs.addToNode(&n)
+// Fragment
+func F(data ...NodeData) N {
+	node := N{}
 
-	return n
+	for _, datum := range data {
+		datum.addToNode(&node)
+	}
+
+	return node
+}
+
+func parseSelector(selector string) N {
+	node := N{tag: selector}
+
+	attrs := A{}
+	attrs.addToNode(&node)
+
+	return node
+}
+
+type CondFunc func() N
+
+func If(cond bool, fn CondFunc) N {
+	if !cond {
+		return F()
+	}
+	return fn()
+}
+
+func IfElse(cond bool, fnIf CondFunc, fnElse CondFunc) N {
+	if !cond {
+		return fnElse()
+	}
+	return fnIf()
+}
+
+// Make this generic in 1.18
+func For(items []interface{}, fn func(item interface{}, index int) N) N {
+	node := F()
+	for index, item := range items {
+		n := fn(item, index)
+		node.addToNode(&n)
+	}
+	return node
 }
