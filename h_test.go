@@ -5,111 +5,262 @@ import (
 	"testing"
 )
 
-func TestH(t *testing.T) {
-	tests := []struct {
-		name string
-		got  fmt.Stringer
-		want string
-	}{
-		// General rendering
-		{
-			"renders elements",
-			E("span"),
-			`<span />`,
-		},
-		{
-			"renders text",
-			T{"aitch best templating library"},
-			"aitch best templating library",
-		},
-		{
-			"renders fragments",
-			F(E("span"), T{"woohoo!!"}),
-			"<span />woohoo!!",
-		},
+// Make tests less verbose
+type w []string
 
-		// Attributes
-		{
-			"renders attributes",
-			E("img", A{"src": "/path/image.png"}),
-			`<img src="/path/image.png" />`,
-		},
-		{
-			"renders true boolean attributes without value",
-			E("div", A{"hidden": true}),
-			`<div hidden />`,
-		},
-		{
-			"does not render false boolean attributes",
-			E("div", A{"hidden": false}),
-			`<div />`,
-		},
-		{
-			"renders multiple attributes from separate arguments",
-			E("a", A{"aria-hidden": "true"}, A{"href": "#some-heading"}),
-			`<a aria-hidden="true" href="#some-heading" />`,
-		},
-		{
-			"merges consecutive class attributes",
-			E("div", A{"class": "big"}, A{"class": "green"}),
-			`<div class="big green" />`,
-		},
+// Render function testing utility
+func hTest(t *testing.T, node fmt.Stringer, wants w) {
+	got := node.String()
 
-		// Nesting
-		{
-			"renders child elements",
-			E("div", E("div", E("div"))),
-			`<div><div><div /></div></div>`,
-		},
-		{
-			"renders child text",
-			E("div", T{"Hello!!"}),
-			`<div>Hello!!</div>`,
-		},
-		{
-			"allows passing empty text to prevent element self-closing",
-			E("div", T{}),
-			`<div></div>`,
-		},
-		{
-			"allows passing a fragment to prevent element self-closing",
-			E("div", F()),
-			`<div></div>`,
-		},
+	hasMatch := false
 
-		// Conditional rendering
-		{
-			"renders if true",
-			E("div", If(true, func() N { return E("span") })),
-			"<div><span /></div>",
-		},
-		{
-			"renders if true (IfElse)",
-			E("div", IfElse(true,
-				func() N { return E("span") },
-				func() N { return E("div") })),
-			"<div><span /></div>",
-		},
-		{
-			"does not render if false",
-			E("div", If(false, func() N {
-				return E("span")
-			})),
-			"<div></div>",
-		},
-		{
-			"does not render if false (IfElse)",
-			E("div", IfElse(false,
-				func() N { return E("span") },
-				func() N { return E("div") })),
-			"<div><div /></div>",
-		},
-	}
-
-	for _, test := range tests {
-		got := Render(test.got)
-		if got != test.want {
-			t.Errorf("%s: got '%s', want '%s'", test.name, got, test.want)
+	for _, want := range wants {
+		if got == want {
+			hasMatch = true
 		}
 	}
+
+	if !hasMatch {
+		t.Errorf("got '%s', want one of %v", got, wants)
+	}
+}
+
+// General rendering
+
+func TestRenderElement(t *testing.T) {
+	hTest(t,
+		E("span"),
+		w{`<span />`},
+	)
+}
+
+func TestRenderRawHTML(t *testing.T) {
+	hTest(t,
+		R{"aitch best templating <div />"},
+		w{"aitch best templating <div />"},
+	)
+}
+
+func TestRenderHTMLEscapedText(t *testing.T) {
+	hTest(t,
+		T{"hi! <div>Hmmm</div>"},
+		w{"hi! &lt;div&gt;Hmmm&lt;/div&gt;"},
+	)
+}
+
+func TestRenderFragment(t *testing.T) {
+	hTest(t,
+		F(E("span"), T{"woohoo!!"}),
+		w{"<span />woohoo!!"},
+	)
+}
+
+// Attributes
+
+func TestRenderAttribute(t *testing.T) {
+	hTest(t,
+		E("img", A{"src": "/path/image.png"}),
+		w{`<img src="/path/image.png" />`},
+	)
+}
+
+func TestRenderTrueAttribute(t *testing.T) {
+	hTest(t,
+		E("div", A{"hidden": true}),
+		w{`<div hidden />`},
+	)
+}
+
+func TestRenderFalseAttribute(t *testing.T) {
+	hTest(t,
+		E("div", A{"hidden": false}),
+		w{`<div />`},
+	)
+}
+
+func TestRenderMultipleAttributesSeparateArguments(t *testing.T) {
+	hTest(t,
+		E("a", A{"aria-hidden": "true"}, A{"href": "#some-heading"}),
+		w{
+			`<a aria-hidden="true" href="#some-heading" />`,
+			`<a href="#some-heading" aria-hidden="true" />`,
+		},
+	)
+}
+
+func TestMergeConsecutiveClassAttributes(t *testing.T) {
+	hTest(t,
+		E("div", A{"class": "big"}, A{"class": "green"}),
+		w{`<div class="big green" />`},
+	)
+}
+
+// Selectors
+
+func TestClassSelector(t *testing.T) {
+	hTest(t,
+		E("div.test"),
+		w{`<div class="test" />`},
+	)
+}
+
+func TestIdSelector(t *testing.T) {
+	hTest(t,
+		E("div#test"),
+		w{`<div id="test" />`},
+	)
+}
+
+func TestDefaultSelectorTag(t *testing.T) {
+	hTest(t,
+		E(".test"),
+		w{`<div class="test" />`},
+	)
+}
+
+func TestOnlyAddFirstId(t *testing.T) {
+	hTest(t,
+		E("div#test#test2"),
+		w{`<div id="test" />`},
+	)
+}
+
+func TestIdAndClassSelector(t *testing.T) {
+	hTest(t,
+		E("div#test.test2"),
+		w{
+			`<div id="test" class="test2" />`,
+			`<div class="test2" id="test" />`,
+		},
+	)
+}
+
+func TestTagFromComplexSelector(t *testing.T) {
+	hTest(t,
+		E("span.test2"),
+		w{`<span class="test2" />`},
+	)
+}
+
+func TestMultipleClassesSelector(t *testing.T) {
+	hTest(t,
+		E("div.test.test2"),
+		w{
+			`<div class="test test2" />`,
+			`<div class="test2 test" />`,
+		},
+	)
+}
+
+func TestClassesSelectorAndClassAttribute(t *testing.T) {
+	hTest(t,
+		E("div.test", A{"class": "test2"}),
+		w{
+			`<div class="test test2" />`,
+			`<div class="test2 test" />`,
+		},
+	)
+}
+
+func TestRenderCustomAttribute(t *testing.T) {
+	hTest(t,
+		E(`div[test="thing"]`),
+		w{`<div test="thing" />`},
+	)
+}
+
+func TestRenderMultipleCustomAttribute(t *testing.T) {
+	hTest(t,
+		E(`div[test="thing"][test2="thing"]`),
+		w{
+			`<div test="thing" test2="thing" />`,
+			`<div test2="thing" test="thing" />`,
+		},
+	)
+}
+
+func TestCompactsSelector(t *testing.T) {
+	hTest(t,
+		E(`div
+			.test
+			[test2="thing"]
+		`),
+		w{
+			`<div class="test" test2="thing" />`,
+			`<div test2="thing" class="test" />`,
+		},
+	)
+}
+
+func TestRenderCustomBooleanAttribute(t *testing.T) {
+	hTest(t,
+		E(`div[test]`),
+		w{`<div test />`},
+	)
+}
+
+// Nesting
+
+func TestRenderChildElements(t *testing.T) {
+	hTest(t,
+		E("div", E("div", E("div"))),
+		w{`<div><div><div /></div></div>`},
+	)
+}
+
+func TestRenderChildText(t *testing.T) {
+	hTest(t,
+		E("div", T{"Hello!!"}),
+		w{`<div>Hello!!</div>`},
+	)
+}
+
+func TestPreventSelfClosingWithText(t *testing.T) {
+	hTest(t,
+		E("div", T{}),
+		w{`<div></div>`},
+	)
+}
+
+func TestPreventSelfClosingWithFragment(t *testing.T) {
+	hTest(t,
+		E("div", F()),
+		w{`<div></div>`},
+	)
+}
+
+// Conditional rendering
+
+func TestRenderIfTrue(t *testing.T) {
+	hTest(t,
+		E("div", If(true, func() N { return E("span") })),
+		w{`<div><span /></div>`},
+	)
+}
+
+func TestIfElseRenderIfTrue(t *testing.T) {
+	hTest(t,
+		E("div", IfElse(true,
+			func() N { return E("span") },
+			func() N { return E("div") })),
+		w{`<div><span /></div>`},
+	)
+}
+
+func TestDontRenderIfFalse(t *testing.T) {
+	hTest(t,
+		E("div", If(false, func() N {
+			return E("span")
+		})),
+		w{`<div></div>`},
+	)
+}
+
+func TestIfElseDontRenderIfFalse(t *testing.T) {
+	hTest(t,
+		E("div", IfElse(false,
+			func() N { return E("span") },
+			func() N { return E("div") })),
+		w{`<div><div /></div>`},
+	)
 }

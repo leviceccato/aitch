@@ -3,6 +3,9 @@ package h
 import (
 	"bytes"
 	"fmt"
+	"html"
+	"strings"
+	"unicode"
 )
 
 func Render(stringer fmt.Stringer) string {
@@ -16,7 +19,7 @@ type N struct {
 	content    []fmt.Stringer
 }
 
-func parseAttribute(name string, attribute interface{}) string {
+func renderAttribute(name string, attribute interface{}) string {
 	switch a := attribute.(type) {
 	case bool:
 		if a {
@@ -36,7 +39,7 @@ func (n N) String() string {
 		b.WriteString("<" + n.tag)
 
 		for name, attribute := range n.attributes {
-			b.WriteString(parseAttribute(name, attribute))
+			b.WriteString(renderAttribute(name, attribute))
 		}
 
 		if len(n.content) == 0 {
@@ -93,20 +96,37 @@ func (a A) addToNode(node *N) {
 	}
 }
 
-type T [1]string
+// May be instantiated like [T]{"string"}
+type wrappedString struct {
+	content string
+}
+
+// Text
+type T wrappedString
 
 func (t T) String() string {
-	return t[0]
+	return html.EscapeString(t.content)
 }
 
 func (t T) addToNode(node *N) {
 	node.content = append(node.content, t)
 }
 
-type Comment [1]string
+// Raw HTML
+type R wrappedString
+
+func (r R) String() string {
+	return r.content
+}
+
+func (r R) addToNode(node *N) {
+	node.content = append(node.content, r)
+}
+
+type Comment wrappedString
 
 func (c Comment) String() string {
-	return "<!-- " + c[0] + " -->"
+	return "<!-- " + c.content + " -->"
 }
 
 func (c Comment) addToNode(node *N) {
@@ -120,7 +140,7 @@ func C(content string) NodeData {
 
 // Element
 func E(selector string, data ...NodeData) N {
-	node := parseSelector(selector)
+	node := newNode(selector)
 
 	for _, datum := range data {
 		datum.addToNode(&node)
@@ -140,13 +160,108 @@ func F(data ...NodeData) N {
 	return node
 }
 
-func parseSelector(selector string) N {
-	node := N{tag: selector}
+func newNode(selector string) N {
+	tag, attrs := parseSelector(selector)
 
-	attrs := A{}
-	attrs.addToNode(&node)
+	node := N{tag: tag}
+	for _, attr := range attrs {
+		attr.addToNode(&node)
+	}
 
 	return node
+}
+
+func parseSelector(selector string) (string, []A) {
+	chars := []rune(selector)
+	charsLength := len(chars)
+
+	attrs := []A{}
+	tag := "div"
+	segmentEnd := charsLength
+	isCustom := false
+
+	for i := charsLength - 1; i >= 0; i-- {
+		char := chars[i]
+
+		// Close out custom attribute
+		if char == '[' {
+			attrs = append(attrs, parseAttribute(string(chars[i+1:segmentEnd])))
+			isCustom = false
+			segmentEnd = i
+			continue
+		}
+
+		// Ignore if currently inside a custom attribute
+		if isCustom {
+			continue
+		}
+
+		// Start custom attribute
+		if char == ']' {
+			segmentEnd = i
+			isCustom = true
+			continue
+		}
+
+		// Close out id
+		if char == '#' {
+			attrs = append(attrs, A{"id": compactSelector(string(chars[i+1 : segmentEnd]))})
+			segmentEnd = i
+			continue
+		}
+
+		// Close out class
+		if char == '.' {
+			attrs = append(attrs, A{"class": compactSelector(string(chars[i+1 : segmentEnd]))})
+			segmentEnd = i
+			continue
+		}
+
+		// Starts with a tag, use it for the node
+		if i == 0 {
+			tag = compactSelector(string(chars[i:segmentEnd]))
+		}
+	}
+
+	return tag, attrs
+}
+
+func compactSelector(selector string) string {
+	var b bytes.Buffer
+	b.Grow(len(selector))
+
+	for _, char := range selector {
+		if unicode.IsSpace(char) {
+			continue
+		}
+		b.WriteRune(char)
+	}
+
+	return b.String()
+}
+
+func parseAttribute(attrPair string) A {
+	entries := strings.FieldsFunc(attrPair, func(char rune) bool {
+		if char == '=' {
+			return true
+		}
+		return false
+	})
+
+	name := compactSelector(entries[0])
+
+	if len(entries) == 1 {
+		return A{name: true}
+	}
+
+	value := strings.TrimFunc(entries[1], func(char rune) bool {
+		if char == '"' || char == '\'' {
+			return true
+		}
+		return false
+	})
+
+	return A{name: value}
 }
 
 type CondFunc func() N
@@ -168,9 +283,11 @@ func IfElse(cond bool, fnIf CondFunc, fnElse CondFunc) N {
 // Make this generic in 1.18
 func For(items []interface{}, fn func(item interface{}, index int) N) N {
 	node := F()
+
 	for index, item := range items {
 		n := fn(item, index)
 		node.addToNode(&n)
 	}
+
 	return node
 }
