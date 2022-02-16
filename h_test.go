@@ -233,7 +233,7 @@ func TestPreventSelfClosingWithFragment(t *testing.T) {
 
 func TestRenderIfTrue(t *testing.T) {
 	hTest(t,
-		E("div", If(true, func() N { return E("span") })),
+		E("div", If(true, func() D { return E("span") })),
 		w{`<div><span /></div>`},
 	)
 }
@@ -241,15 +241,15 @@ func TestRenderIfTrue(t *testing.T) {
 func TestIfElseRenderIfTrue(t *testing.T) {
 	hTest(t,
 		E("div", IfElse(true,
-			func() N { return E("span") },
-			func() N { return E("div") })),
+			func() D { return E("span") },
+			func() D { return E("div") })),
 		w{`<div><span /></div>`},
 	)
 }
 
 func TestDontRenderIfFalse(t *testing.T) {
 	hTest(t,
-		E("div", If(false, func() N {
+		E("div", If(false, func() D {
 			return E("span")
 		})),
 		w{`<div></div>`},
@@ -259,9 +259,22 @@ func TestDontRenderIfFalse(t *testing.T) {
 func TestIfElseDontRenderIfFalse(t *testing.T) {
 	hTest(t,
 		E("div", IfElse(false,
-			func() N { return E("span") },
-			func() N { return E("div") })),
+			func() D { return E("span") },
+			func() D { return E("div") })),
 		w{`<div><div /></div>`},
+	)
+}
+
+func TestFor(t *testing.T) {
+	names := []string{"Jon", "Lawrie", "Jade"}
+
+	hTest(t,
+		E("div", For(names,
+			func(_ int, name string) D {
+				return E("span", T{name})
+			},
+		)),
+		w{`<div><span>Jon</span><span>Lawrie</span><span>Jade</span></div>`},
 	)
 }
 

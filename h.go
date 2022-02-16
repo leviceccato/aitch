@@ -19,7 +19,7 @@ type N struct {
 	content    []fmt.Stringer
 }
 
-func renderAttribute(name string, attribute interface{}) string {
+func renderAttribute(name string, attribute any) string {
 	switch a := attribute.(type) {
 	case bool:
 		if a {
@@ -65,12 +65,12 @@ func (n N) addToNode(node *N) {
 }
 
 // Fragment
-type NodeData interface {
+type D interface {
 	addToNode(*N)
 }
 
 // Attributes
-type A map[string]interface{}
+type A map[string]any
 
 func (a A) addToNode(node *N) {
 	if node.attributes == nil {
@@ -134,12 +134,12 @@ func (c Comment) addToNode(node *N) {
 }
 
 // Comment
-func C(content string) NodeData {
+func C(content string) D {
 	return Comment{content}
 }
 
 // Element
-func E(selector string, data ...NodeData) N {
+func E(selector string, data ...D) N {
 	node := newNode(selector)
 
 	for _, datum := range data {
@@ -150,7 +150,7 @@ func E(selector string, data ...NodeData) N {
 }
 
 // Fragment
-func F(data ...NodeData) N {
+func F(data ...D) N {
 	node := N{}
 
 	for _, datum := range data {
@@ -264,29 +264,26 @@ func parseAttribute(attrPair string) A {
 	return A{name: value}
 }
 
-type CondFunc func() N
-
-func If(cond bool, fn CondFunc) N {
+func If(cond bool, fn func() D) D {
 	if !cond {
 		return F()
 	}
 	return fn()
 }
 
-func IfElse(cond bool, fnIf CondFunc, fnElse CondFunc) N {
+func IfElse(cond bool, fnIf func() D, fnElse func() D) D {
 	if !cond {
 		return fnElse()
 	}
 	return fnIf()
 }
 
-// Make this generic in 1.18
-func For(items []interface{}, fn func(item interface{}, index int) N) N {
+func For[I any](items []I, fn func(index int, item I) D) D {
 	node := F()
 
 	for index, item := range items {
-		n := fn(item, index)
-		node.addToNode(&n)
+		n := fn(index, item)
+		n.addToNode(&node)
 	}
 
 	return node
