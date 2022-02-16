@@ -9,8 +9,8 @@ This library is designed to output HTML strings and is therefore not recommended
 ## Features
 - Polymorphic and variadic `h.E` function that can produce HTML with great flexibility
 - Control flow with `h.If`, `h.IfElse` and `h.For`
-- CSS selector style shorthand attribute definitions
-- Smart handling of multiple classes and boolean attributes
+- CSS style attribute definitions
+- Smart handling of classes and boolean attributes
 - Fragments, raw HTML, text and comments
 
 ## Requirements
@@ -21,4 +21,39 @@ This library is designed to output HTML strings and is therefore not recommended
 
 ```
 go get github.com/leviceccato/aitch
+```
+
+## Example
+
+```go
+package component
+
+import (
+    "github.com/leviceccato/aitch"
+)
+
+func Page(title string, users []int) string {
+    return h.F(
+        h.E("!DOCTYPE[html]"),
+        h.E("html",
+            h.E("head",
+                h.E("title",
+                    h.IfElse(title == "",
+                        func() h.D { return h.T{title} },
+                        func() h.D { return "Page" },
+                    ),
+                )
+                h.E("meta", h.A{"charset": "utf-8"}),
+            ),
+            h.E("body#body",
+                h.E("h1", h.T{title}),
+                h.E(".container",
+                    h.For(users, func(_ int, user int) h.D {
+                        return h.E("p", h.T{"User: " + strcov.Itoa(user)})
+                    })
+                ),
+            ),
+        ),
+    ).String()
+}
 ```
