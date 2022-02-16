@@ -42,14 +42,14 @@ func Page(title string, users []int) string {
                         func() h.D { return "Page" },
                         func() h.D { return h.T{title} },
                     ),
-                )
+                ),
                 h.E("meta", h.A{"charset": "utf-8"}),
             ),
             h.E("body#body",
                 h.E(".container",
                     h.For(users, func(_ int, user string) h.D {
                         return h.E("p", h.T{"User: " + user})
-                    })
+                    }),
                 ),
             ),
         ),
