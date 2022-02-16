@@ -264,3 +264,44 @@ func TestIfElseDontRenderIfFalse(t *testing.T) {
 		w{`<div><div /></div>`},
 	)
 }
+
+func TestExampleHTML(t *testing.T) {
+	imgSrc := "/logo.png"
+
+	hTest(t,
+		F(
+			E("!DOCTYPE[html]"),
+			E(`html[lang="en"]`,
+				E("head",
+					E("title", T{"Example HTML"}),
+				),
+				E("body",
+					E("header",
+						E(".container",
+							E("img", A{
+								"src": imgSrc,
+								"alt": "",
+							}),
+						),
+					),
+					E("main",
+						E("div",
+							E("h1#title",
+								T{"Title goes here"},
+							),
+						),
+					),
+					E("footer",
+						E(`a[href="/"]`,
+							T{"Home"},
+						),
+					),
+				),
+			),
+		),
+		w{
+			`<!DOCTYPE html /><html lang="en"><head><title>Example HTML</title></head><body><header><div class="container"><img src="/logo.png" alt="" /></div></header><main><div><h1 id="title">Title goes here</h1></div></main><footer><a href="/">Home</a></footer></body></html>`,
+			`<!DOCTYPE html /><html lang="en"><head><title>Example HTML</title></head><body><header><div class="container"><img alt="" src="/logo.png" /></div></header><main><div><h1 id="title">Title goes here</h1></div></main><footer><a href="/">Home</a></footer></body></html>`,
+		},
+	)
+}
