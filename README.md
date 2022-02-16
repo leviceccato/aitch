@@ -32,7 +32,7 @@ import (
     "github.com/leviceccato/aitch"
 )
 
-func Page(title string, users []int) string {
+func Page(title string, users []string) string {
     return h.F(
         h.E("!DOCTYPE[html]"),
         h.E("html",
