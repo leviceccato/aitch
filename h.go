@@ -8,10 +8,6 @@ import (
 	"unicode"
 )
 
-func Render(stringer fmt.Stringer) string {
-	return stringer.String()
-}
-
 // Node
 type N struct {
 	tag        string
