@@ -29,6 +29,7 @@ go get github.com/leviceccato/aitch
 package component
 
 import (
+    "strcov"
     "github.com/leviceccato/aitch"
 )
 
