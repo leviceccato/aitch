@@ -260,18 +260,18 @@ func parseAttribute(attrPair string) A {
 	return A{name: value}
 }
 
-func If(cond bool, fn func() D) D {
+func If(cond bool, data D) D {
 	if !cond {
 		return F()
 	}
-	return fn()
+	return data
 }
 
-func IfElse(cond bool, fnIf func() D, fnElse func() D) D {
+func IfElse(cond bool, dataIf D, dataElse D) D {
 	if !cond {
-		return fnElse()
+		return dataElse
 	}
-	return fnIf()
+	return dataIf
 }
 
 func For[I any](items []I, fn func(index int, item I) D) D {
