@@ -64,7 +64,7 @@ func (n N) addToNode(node *N) {
 	node.content = append(node.content, n)
 }
 
-// Fragment
+// Data
 type D interface {
 	addToNode(*N)
 }
