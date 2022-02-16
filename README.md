@@ -48,7 +48,6 @@ func Page(title string, users []int) string {
                 h.E("meta", h.A{"charset": "utf-8"}),
             ),
             h.E("body#body",
-                h.E("h1", h.T{title}),
                 h.E(".container",
                     h.For(users, func(_ int, user int) h.D {
                         return h.E("p", h.T{"User: " + strcov.Itoa(user)})
