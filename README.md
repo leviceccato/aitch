@@ -29,8 +29,6 @@ go get github.com/leviceccato/aitch
 package component
 
 import (
-    "strcov"
-
     "github.com/leviceccato/aitch"
 )
 
@@ -49,8 +47,8 @@ func Page(title string, users []int) string {
             ),
             h.E("body#body",
                 h.E(".container",
-                    h.For(users, func(_ int, user int) h.D {
-                        return h.E("p", h.T{"User: " + strcov.Itoa(user)})
+                    h.For(users, func(_ int, user string) h.D {
+                        return h.E("p", h.T{"User: " + user})
                     })
                 ),
             ),
