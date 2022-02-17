@@ -33,7 +33,7 @@ import (
 )
 
 func Page(title string, users []string) string {
-    return h.F(
+    return h.E("",
         h.E("!DOCTYPE[html]"),
         h.E("html",
             h.E("head",
