@@ -9,7 +9,7 @@ import (
 )
 
 // Node
-type N struct {
+type Node struct {
 	tag        string
 	attributes A
 	content    []fmt.Stringer
@@ -27,7 +27,7 @@ func renderAttribute(name string, attribute any) string {
 	}
 }
 
-func (n N) String() string {
+func (n Node) String() string {
 	isElement := n.tag != ""
 	var b bytes.Buffer
 
@@ -56,19 +56,19 @@ func (n N) String() string {
 	return b.String()
 }
 
-func (n N) addToNode(node *N) {
+func (n Node) addToNode(node *Node) {
 	node.content = append(node.content, n)
 }
 
 // Data
 type D interface {
-	addToNode(*N)
+	addToNode(*Node)
 }
 
 // Attributes
 type A map[string]any
 
-func (a A) addToNode(node *N) {
+func (a A) addToNode(node *Node) {
 	if node.attributes == nil {
 		node.attributes = A{}
 	}
@@ -131,7 +131,7 @@ func (c C) addToNode(node *Node) {
 }
 
 // Element
-func E(selector string, data ...D) N {
+func E(selector string, data ...D) Node {
 	node := newNode(selector)
 
 	for _, datum := range data {
@@ -146,13 +146,10 @@ func F(data ...D) Node {
 	return E("", data...)
 }
 
-	return node
-}
-
-func newNode(selector string) N {
+func newNode(selector string) Node {
 	tag, attrs := parseSelector(selector)
 
-	node := N{tag: tag}
+	node := Node{tag: tag}
 	for _, attr := range attrs {
 		attr.addToNode(&node)
 	}
