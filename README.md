@@ -39,7 +39,7 @@ func Page(title string, users []string) string {
             h.E("head",
                 h.E("title",
                     h.IfElse(title == "",
-                        "Page",
+                        h.T{"Page"},
                         h.T{title},
                     ),
                 ),
