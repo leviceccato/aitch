@@ -141,11 +141,6 @@ func E(selector string, data ...D) Node {
 	return node
 }
 
-// Fragment
-func F(data ...D) Node {
-	return E("", data...)
-}
-
 func newNode(selector string) Node {
 	tag, attrs := parseSelector(selector)
 
@@ -158,10 +153,14 @@ func newNode(selector string) Node {
 }
 
 func parseSelector(selector string) (string, []A) {
+	attrs := []A{}
+	if selector == "" {
+		return "", attrs
+	}
+
 	chars := []rune(selector)
 	charsLength := len(chars)
 
-	attrs := []A{}
 	tag := "div"
 	segmentEnd := charsLength
 	isCustom := false
@@ -254,7 +253,7 @@ func parseAttribute(attrPair string) A {
 
 func If(cond bool, data D) D {
 	if !cond {
-		return F()
+		return E("")
 	}
 	return data
 }
@@ -267,7 +266,7 @@ func IfElse(cond bool, dataIf D, dataElse D) D {
 }
 
 func For[I any](items []I, fn func(index int, item I) D) D {
-	node := F()
+	node := E("")
 
 	for index, item := range items {
 		n := fn(index, item)

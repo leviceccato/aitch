@@ -50,7 +50,7 @@ func TestRenderHTMLEscapedText(t *testing.T) {
 
 func TestRenderFragment(t *testing.T) {
 	hTest(t,
-		F(E("span"), T("woohoo!!")),
+		E("", E("span"), T("woohoo!!")),
 		w{"<span />woohoo!!"},
 	)
 }
@@ -231,7 +231,7 @@ func TestPreventSelfClosingWithText(t *testing.T) {
 
 func TestPreventSelfClosingWithFragment(t *testing.T) {
 	hTest(t,
-		E("div", F()),
+		E("div", E("")),
 		w{`<div></div>`},
 	)
 }
@@ -287,7 +287,7 @@ func TestExampleHTML(t *testing.T) {
 	imgSrc := "/logo.png"
 
 	hTest(t,
-		F(
+		E("",
 			E("!DOCTYPE[html]"),
 			E(`html[lang="en"]`,
 				E("head",
