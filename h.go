@@ -142,12 +142,9 @@ func E(selector string, data ...D) N {
 }
 
 // Fragment
-func F(data ...D) N {
-	node := N{}
-
-	for _, datum := range data {
-		datum.addToNode(&node)
-	}
+func F(data ...D) Node {
+	return E("", data...)
+}
 
 	return node
 }
