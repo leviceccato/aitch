@@ -10,33 +10,18 @@ import (
 
 // Node
 type Node struct {
-	tag        string
-	attributes A
-	content    []fmt.Stringer
-}
-
-func renderAttribute(name string, attribute any) string {
-	switch a := attribute.(type) {
-	case bool:
-		if a {
-			return " " + name
-		}
-		return ""
-	default:
-		return fmt.Sprintf(" %v=\"%v\"", name, a)
-	}
+	tag     string
+	attrs   A
+	content []fmt.Stringer
 }
 
 func (n Node) String() string {
 	isElement := n.tag != ""
-	var b bytes.Buffer
+
+	b := bytes.Buffer{}
 
 	if isElement {
-		b.WriteString("<" + n.tag)
-
-		for name, attribute := range n.attributes {
-			b.WriteString(renderAttribute(name, attribute))
-		}
+		b.WriteString("<" + n.tag + n.attrs.String())
 
 		if len(n.content) == 0 {
 			b.WriteString(" />")
@@ -68,9 +53,51 @@ type D interface {
 // Attributes
 type A map[string]any
 
-func (a A) addToNode(node *Node) {
-	if node.attributes == nil {
-		node.attributes = A{}
+func (a A) String() string {
+	b := bytes.Buffer{}
+
+	for name, attr := range a {
+		switch name {
+		case "class":
+			b.WriteString(" class=\"")
+
+			for name, isActive := range attr.(A) {
+				if !isActive.(bool) {
+					continue
+				}
+				b.WriteString(" " + name)
+			}
+
+			b.WriteString("\"")
+
+		case "style":
+			b.WriteString(" style=\"")
+
+			for prop, value := range attr.(A) {
+				b.WriteString(" " + prop + ": " + value.(string) + ";")
+			}
+
+			b.WriteString("\"")
+		}
+
+		switch attr.(type) {
+		case bool:
+			if !attr.(bool) {
+				continue
+			}
+			b.WriteString(" " + name)
+
+		case string:
+			b.WriteString(" " + name + "=\"" + attr.(string) + "\"")
+		}
+	}
+
+	return b.String()
+}
+
+func (a A) addToNode(n *Node) {
+	if n.attrs == nil {
+		n.attrs = A{}
 	}
 
 	for key, value := range a {
@@ -78,23 +105,78 @@ func (a A) addToNode(node *Node) {
 			continue
 		}
 
-		if key == "class" {
-			class, ok := node.attributes["class"]
+		switch key {
+		case "class":
+			_, ok := n.attrs["class"]
 			if !ok {
-				node.attributes["class"] = fmt.Sprintf("%v", value)
-				continue
+				n.attrs["class"] = A{}
 			}
-			node.attributes["class"] = fmt.Sprintf("%v %v", class, value)
+
+			switch value.(type) {
+			case A:
+				for name, isActive := range value.(A) {
+					n.attrs["class"].(A)[name] = isActive.(bool)
+				}
+
+			case string:
+				names := strings.FieldsFunc(value.(string), unicode.IsSpace)
+				for _, name := range names {
+					n.attrs["class"].(A)[name] = true
+				}
+			}
+
+			continue
+
+		case "style":
+			_, ok := n.attrs["style"]
+			if !ok {
+				n.attrs["style"] = A{}
+			}
+
+			switch value.(type) {
+			case A:
+				for prop, propVal := range value.(A) {
+					n.attrs["style"].(A)[prop] = propVal.(string)
+				}
+
+			case string:
+				styles := strings.FieldsFunc(value.(string), func(char rune) bool {
+					return char == ';'
+				})
+
+				for _, style := range styles {
+					propAndValue := strings.FieldsFunc(style, func(char rune) bool {
+						return char == ':'
+					})
+
+					// Not formatted correctly, abandon
+					if len(propAndValue) < 2 {
+						break
+					}
+
+					n.attrs["class"].(A)[propAndValue[0]] = propAndValue[1]
+				}
+			}
+
 			continue
 		}
 
-		node.attributes[key] = value
-	}
-}
+		switch value.(type) {
+		case bool:
+			v := value.(bool)
+			if v {
+				n.attrs[key] = v
+				continue
+			}
+			continue
 
-// May be instantiated like [T]{"string"}
-type wrappedString struct {
-	content string
+		case string:
+			n.attrs[key] = value.(string)
+			continue
+		}
+
+		n.attrs[key] = fmt.Sprintf("%v", value)
+	}
 }
 
 // Text
@@ -190,32 +272,32 @@ func parseSelector(selector string) (string, []A) {
 
 		// Close out id
 		if char == '#' {
-			attrs = append(attrs, A{"id": compactSelector(string(chars[i+1 : segmentEnd]))})
+			attrs = append(attrs, A{"id": compactStr(string(chars[i+1 : segmentEnd]))})
 			segmentEnd = i
 			continue
 		}
 
 		// Close out class
 		if char == '.' {
-			attrs = append(attrs, A{"class": compactSelector(string(chars[i+1 : segmentEnd]))})
+			attrs = append(attrs, A{"class": compactStr(string(chars[i+1 : segmentEnd]))})
 			segmentEnd = i
 			continue
 		}
 
 		// Starts with a tag, use it for the node
 		if i == 0 {
-			tag = compactSelector(string(chars[i:segmentEnd]))
+			tag = compactStr(string(chars[i:segmentEnd]))
 		}
 	}
 
 	return tag, attrs
 }
 
-func compactSelector(selector string) string {
-	var b bytes.Buffer
-	b.Grow(len(selector))
+func compactStr(str string) string {
+	b := bytes.Buffer{}
+	b.Grow(len(str))
 
-	for _, char := range selector {
+	for _, char := range str {
 		if unicode.IsSpace(char) {
 			continue
 		}
@@ -233,7 +315,7 @@ func parseAttribute(attrPair string) A {
 		return false
 	})
 
-	name := compactSelector(entries[0])
+	name := compactStr(entries[0])
 
 	if len(entries) == 1 {
 		return A{name: true}

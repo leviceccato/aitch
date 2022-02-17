@@ -98,7 +98,7 @@ func TestRenderMultipleAttributesSeparateArguments(t *testing.T) {
 func TestMergeConsecutiveClassAttributes(t *testing.T) {
 	hTest(t,
 		E("div", A{"class": "big"}, A{"class": "green"}),
-		w{`<div class="big green" />`},
+		w{`<div class=" big green" />`},
 	)
 }
 
@@ -107,7 +107,7 @@ func TestMergeConsecutiveClassAttributes(t *testing.T) {
 func TestClassSelector(t *testing.T) {
 	hTest(t,
 		E("div.test"),
-		w{`<div class="test" />`},
+		w{`<div class=" test" />`},
 	)
 }
 
@@ -121,7 +121,7 @@ func TestIdSelector(t *testing.T) {
 func TestDefaultSelectorTag(t *testing.T) {
 	hTest(t,
 		E(".test"),
-		w{`<div class="test" />`},
+		w{`<div class=" test" />`},
 	)
 }
 
@@ -136,8 +136,8 @@ func TestIdAndClassSelector(t *testing.T) {
 	hTest(t,
 		E("div#test.test2"),
 		w{
-			`<div id="test" class="test2" />`,
-			`<div class="test2" id="test" />`,
+			`<div id="test" class=" test2" />`,
+			`<div class=" test2" id="test" />`,
 		},
 	)
 }
@@ -145,7 +145,7 @@ func TestIdAndClassSelector(t *testing.T) {
 func TestTagFromComplexSelector(t *testing.T) {
 	hTest(t,
 		E("span.test2"),
-		w{`<span class="test2" />`},
+		w{`<span class=" test2" />`},
 	)
 }
 
@@ -153,8 +153,8 @@ func TestMultipleClassesSelector(t *testing.T) {
 	hTest(t,
 		E("div.test.test2"),
 		w{
-			`<div class="test test2" />`,
-			`<div class="test2 test" />`,
+			`<div class=" test test2" />`,
+			`<div class=" test2 test" />`,
 		},
 	)
 }
@@ -163,8 +163,8 @@ func TestClassesSelectorAndClassAttribute(t *testing.T) {
 	hTest(t,
 		E("div.test", A{"class": "test2"}),
 		w{
-			`<div class="test test2" />`,
-			`<div class="test2 test" />`,
+			`<div class=" test test2" />`,
+			`<div class=" test2 test" />`,
 		},
 	)
 }
@@ -193,8 +193,8 @@ func TestCompactsSelector(t *testing.T) {
 			[test2="thing"]
 		`),
 		w{
-			`<div class="test" test2="thing" />`,
-			`<div test2="thing" class="test" />`,
+			`<div class=" test" test2="thing" />`,
+			`<div test2="thing" class=" test" />`,
 		},
 	)
 }
@@ -318,8 +318,8 @@ func TestExampleHTML(t *testing.T) {
 			),
 		),
 		w{
-			`<!DOCTYPE html /><html lang="en"><head><title>Example HTML</title></head><body><header><div class="container"><img src="/logo.png" alt="" /></div></header><main><div><h1 id="title">Title goes here</h1></div></main><footer><a href="/">Home</a></footer></body></html>`,
-			`<!DOCTYPE html /><html lang="en"><head><title>Example HTML</title></head><body><header><div class="container"><img alt="" src="/logo.png" /></div></header><main><div><h1 id="title">Title goes here</h1></div></main><footer><a href="/">Home</a></footer></body></html>`,
+			`<!DOCTYPE html /><html lang="en"><head><title>Example HTML</title></head><body><header><div class=" container"><img src="/logo.png" alt="" /></div></header><main><div><h1 id="title">Title goes here</h1></div></main><footer><a href="/">Home</a></footer></body></html>`,
+			`<!DOCTYPE html /><html lang="en"><head><title>Example HTML</title></head><body><header><div class=" container"><img alt="" src="/logo.png" /></div></header><main><div><h1 id="title">Title goes here</h1></div></main><footer><a href="/">Home</a></footer></body></html>`,
 		},
 	)
 }
