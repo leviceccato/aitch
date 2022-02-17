@@ -7,8 +7,8 @@ Aitch (or Haitch) is a HTML templating library for Go. It takes inspiration from
 This library is designed to output HTML strings and is therefore not recommended for use with GopherJS.
 
 ## Features
-- Polymorphic and variadic `h.E` function that can produce HTML with great flexibility
-- Control flow with `h.If`, `h.IfElse` and `h.For`
+- Polymorphic and variadic `E` function that can produce HTML with great flexibility
+- Control flow with `If`, `IfElse` and `For`
 - CSS style attribute definitions
 - Smart handling of classes and boolean attributes
 - Fragments, raw HTML, text and comments
