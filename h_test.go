@@ -36,22 +36,29 @@ func TestRenderElement(t *testing.T) {
 
 func TestRenderRawHTML(t *testing.T) {
 	hTest(t,
-		R{"aitch best templating <div />"},
+		R("aitch best templating <div />"),
 		w{"aitch best templating <div />"},
 	)
 }
 
 func TestRenderHTMLEscapedText(t *testing.T) {
 	hTest(t,
-		T{"hi! <div>Hmmm</div>"},
+		T("hi! <div>Hmmm</div>"),
 		w{"hi! &lt;div&gt;Hmmm&lt;/div&gt;"},
 	)
 }
 
 func TestRenderFragment(t *testing.T) {
 	hTest(t,
-		F(E("span"), T{"woohoo!!"}),
+		F(E("span"), T("woohoo!!")),
 		w{"<span />woohoo!!"},
+	)
+}
+
+func TestRenderComment(t *testing.T) {
+	hTest(t,
+		E("span", C("woohoo!!")),
+		w{"<span><!-- woohoo!! --></span>"},
 	)
 }
 
@@ -210,14 +217,14 @@ func TestRenderChildElements(t *testing.T) {
 
 func TestRenderChildText(t *testing.T) {
 	hTest(t,
-		E("div", T{"Hello!!"}),
+		E("div", T("Hello!!")),
 		w{`<div>Hello!!</div>`},
 	)
 }
 
 func TestPreventSelfClosingWithText(t *testing.T) {
 	hTest(t,
-		E("div", T{}),
+		E("div", T("")),
 		w{`<div></div>`},
 	)
 }
@@ -270,7 +277,7 @@ func TestFor(t *testing.T) {
 
 	hTest(t,
 		E("div", For(names, func(_ int, name string) D {
-			return E("span", T{name})
+			return E("span", T(name))
 		})),
 		w{`<div><span>Jon</span><span>Lawrie</span><span>Jade</span></div>`},
 	)
@@ -284,7 +291,7 @@ func TestExampleHTML(t *testing.T) {
 			E("!DOCTYPE[html]"),
 			E(`html[lang="en"]`,
 				E("head",
-					E("title", T{"Example HTML"}),
+					E("title", T("Example HTML")),
 				),
 				E("body",
 					E("header",
@@ -298,13 +305,13 @@ func TestExampleHTML(t *testing.T) {
 					E("main",
 						E("div",
 							E("h1#title",
-								T{"Title goes here"},
+								T("Title goes here"),
 							),
 						),
 					),
 					E("footer",
 						E(`a[href="/"]`,
-							T{"Home"},
+							T("Home"),
 						),
 					),
 				),

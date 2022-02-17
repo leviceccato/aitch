@@ -98,40 +98,36 @@ type wrappedString struct {
 }
 
 // Text
-type T wrappedString
+type T string
 
 func (t T) String() string {
-	return html.EscapeString(t.content)
+	return html.EscapeString(string(t))
 }
 
-func (t T) addToNode(node *N) {
+func (t T) addToNode(node *Node) {
 	node.content = append(node.content, t)
 }
 
 // Raw HTML
-type R wrappedString
+type R string
 
 func (r R) String() string {
-	return r.content
+	return string(r)
 }
 
-func (r R) addToNode(node *N) {
+func (r R) addToNode(node *Node) {
 	node.content = append(node.content, r)
 }
 
-type Comment wrappedString
-
-func (c Comment) String() string {
-	return "<!-- " + c.content + " -->"
-}
-
-func (c Comment) addToNode(node *N) {
-	node.content = append(node.content, c)
-}
-
 // Comment
-func C(content string) D {
-	return Comment{content}
+type C string
+
+func (c C) String() string {
+	return "<!-- " + string(c) + " -->"
+}
+
+func (c C) addToNode(node *Node) {
+	node.content = append(node.content, c)
 }
 
 // Element
