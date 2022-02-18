@@ -38,8 +38,9 @@ func Page(title string, users []string) string {
         h.E("html",
             h.E("head",
                 h.E("title",
-                    h.IfElse(title == "",
+                    h.If(title == "",
                         h.T{"Page"},
+                    ).Else(
                         h.T{title},
                     ),
                 ),
