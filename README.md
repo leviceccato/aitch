@@ -8,7 +8,7 @@ This library is designed to output HTML strings and is therefore not recommended
 
 ## Features
 - Polymorphic and variadic `E` function that can produce HTML with great flexibility
-- Control flow with `If`, `IfElse` and `For`
+- Control flow with `If`, `Else`, `ElseIf` and `For`
 - CSS style attribute definitions
 - Smart handling of classes and boolean attributes
 - Fragments, raw HTML, text and comments
