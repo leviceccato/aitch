@@ -98,7 +98,31 @@ func TestRenderMultipleAttributesSeparateArguments(t *testing.T) {
 func TestMergeConsecutiveClassAttributes(t *testing.T) {
 	hTest(t,
 		E("div", A{"class": "big"}, A{"class": "green"}),
-		w{`<div class=" big green" />`},
+		w{
+			`<div class=" big green" />`,
+			`<div class=" green big" />`,
+		},
+	)
+}
+
+func TestRenderClassMapTrue(t *testing.T) {
+	hTest(t,
+		E("div", A{"class": A{"thing": true}}),
+		w{`<div class=" thing" />`},
+	)
+}
+
+func TestRenderClassMapFalse(t *testing.T) {
+	hTest(t,
+		E("div.test", A{"class": A{"thing": false}}),
+		w{`<div class=" test" />`},
+	)
+}
+
+func TestRenderStyleMap(t *testing.T) {
+	hTest(t,
+		E("div", A{"style": A{"color": "red"}}),
+		w{`<div style=" color: red;" />`},
 	)
 }
 
@@ -238,20 +262,40 @@ func TestPreventSelfClosingWithFragment(t *testing.T) {
 
 // Conditional rendering
 
-func TestRenderIfTrue(t *testing.T) {
+func TestRenderIf(t *testing.T) {
 	hTest(t,
 		E("div", If(true, E("span"))),
 		w{`<div><span /></div>`},
 	)
 }
 
-func TestIfElseRenderIfTrue(t *testing.T) {
+func TestRenderElse(t *testing.T) {
 	hTest(t,
-		E("div", IfElse(true,
-			E("span"),
-			E("div"),
-		)),
-		w{`<div><span /></div>`},
+		E("div",
+			If(false,
+				E("span"),
+			).Else(
+				E("div"),
+			),
+		),
+		w{`<div><div /></div>`},
+	)
+}
+
+func TestRenderIfElseChain(t *testing.T) {
+	thing := "asd"
+
+	hTest(t,
+		E("div",
+			If(thing == "hmm",
+				E("span"),
+			).ElseIf(2 < 0,
+				E("div"),
+			).Else(
+				T("Woah"),
+			),
+		),
+		w{`<div>Woah</div>`},
 	)
 }
 
@@ -259,16 +303,6 @@ func TestDontRenderIfFalse(t *testing.T) {
 	hTest(t,
 		E("div", If(false, E("span"))),
 		w{`<div></div>`},
-	)
-}
-
-func TestIfElseDontRenderIfFalse(t *testing.T) {
-	hTest(t,
-		E("div", IfElse(false,
-			E("span"),
-			E("div"),
-		)),
-		w{`<div><div /></div>`},
 	)
 }
 

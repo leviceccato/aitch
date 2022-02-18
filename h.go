@@ -15,6 +15,14 @@ type Node struct {
 	content []fmt.Stringer
 }
 
+func (n Node) Else(data ...D) D {
+	return n.ElseIf(true, data...)
+}
+
+func (n Node) ElseIf(cond bool, data ...D) D {
+	return elseIf(cond, len(n.content) == 0, data...)
+}
+
 func (n Node) String() string {
 	isElement := n.tag != ""
 
@@ -48,10 +56,20 @@ func (n Node) addToNode(node *Node) {
 // Data
 type D interface {
 	addToNode(*Node)
+	Else(data ...D) D
+	ElseIf(cond bool, data ...D) D
 }
 
 // Attributes
 type A map[string]any
+
+func (a A) Else(data ...D) D {
+	return a.ElseIf(true, data...)
+}
+
+func (a A) ElseIf(cond bool, data ...D) D {
+	return elseIf(cond, len(a) == 0, data...)
+}
 
 func (a A) String() string {
 	b := bytes.Buffer{}
@@ -182,6 +200,14 @@ func (a A) addToNode(n *Node) {
 // Text
 type T string
 
+func (t T) Else(data ...D) D {
+	return t.ElseIf(true, data...)
+}
+
+func (t T) ElseIf(cond bool, data ...D) D {
+	return elseIf(cond, t == "", data...)
+}
+
 func (t T) String() string {
 	return html.EscapeString(string(t))
 }
@@ -193,6 +219,14 @@ func (t T) addToNode(node *Node) {
 // Raw HTML
 type R string
 
+func (r R) Else(data ...D) D {
+	return r.ElseIf(true, data...)
+}
+
+func (r R) ElseIf(cond bool, data ...D) D {
+	return elseIf(cond, r == "", data...)
+}
+
 func (r R) String() string {
 	return string(r)
 }
@@ -203,6 +237,14 @@ func (r R) addToNode(node *Node) {
 
 // Comment
 type C string
+
+func (c C) Else(data ...D) D {
+	return c.ElseIf(true, data...)
+}
+
+func (c C) ElseIf(cond bool, data ...D) D {
+	return elseIf(cond, c == "", data...)
+}
 
 func (c C) String() string {
 	return "<!-- " + string(c) + " -->"
@@ -333,18 +375,18 @@ func parseAttribute(attrPair string) A {
 
 // Control flow
 
+func elseIf(cond, prevCond bool, data ...D) D {
+	if !cond && !prevCond {
+		return E("")
+	}
+	return E("", data...)
+}
+
 func If(cond bool, data D) D {
 	if !cond {
 		return E("")
 	}
 	return data
-}
-
-func IfElse(cond bool, dataIf D, dataElse D) D {
-	if !cond {
-		return dataElse
-	}
-	return dataIf
 }
 
 func For[I any](items []I, fn func(index int, item I) D) D {
