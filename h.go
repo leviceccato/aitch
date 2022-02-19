@@ -15,19 +15,15 @@ type Node struct {
 	content []fmt.Stringer
 }
 
-func elseIf(cond, prevCond bool, data ...D) Node {
-	if !cond && !prevCond {
-		return E("")
-	}
-	return E("", data...)
-}
-
 func (n Node) Else(data ...D) Node {
 	return n.ElseIf(true, data...)
 }
 
 func (n Node) ElseIf(cond bool, data ...D) Node {
-	return elseIf(cond, len(n.content) == 0, data...)
+	if !cond && (len(n.content) > 0) {
+		return E("")
+	}
+	return E("", data...)
 }
 
 func (n Node) String() string {
