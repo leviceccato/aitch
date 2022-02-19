@@ -8,11 +8,27 @@ import (
 	"unicode"
 )
 
+// Data
+type D interface {
+	addToNode(*Node)
+}
+
 // Node
 type Node struct {
 	tag     string
 	attrs   A
 	content []fmt.Stringer
+}
+
+func newNode(selector string) Node {
+	tag, attrs := parseSelector(selector)
+
+	node := Node{tag: tag}
+	for _, attr := range attrs {
+		attr.addToNode(&node)
+	}
+
+	return node
 }
 
 func (n Node) Else(data ...D) Node {
@@ -54,11 +70,6 @@ func (n Node) String() string {
 
 func (n Node) addToNode(node *Node) {
 	node.content = append(node.content, n)
-}
-
-// Data
-type D interface {
-	addToNode(*Node)
 }
 
 // Attributes
@@ -229,17 +240,6 @@ func E(selector string, data ...D) Node {
 
 	for _, datum := range data {
 		datum.addToNode(&node)
-	}
-
-	return node
-}
-
-func newNode(selector string) Node {
-	tag, attrs := parseSelector(selector)
-
-	node := Node{tag: tag}
-	for _, attr := range attrs {
-		attr.addToNode(&node)
 	}
 
 	return node
