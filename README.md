@@ -64,7 +64,7 @@ Most of Aitch's functions are shortened to be a single letter. This helps the te
 
 ### Nodes
 
-The primary building blocks of an Aitch template are Nodes. You can create them using the `h.E()` (element) function. Nodes can be HTML elements or fragments. A fragment is a Node that represents a list of HTML elements and does not itself get rendered. To create an element you must pass the tag of an HTML element as the first argument.
+The primary building blocks of an Aitch template are nodes. You can create them using the `h.E()` (element) function. Nodes can be HTML elements or fragments. A fragment is a node that represents a list of HTML elements and does not itself get rendered. To create an element you must pass the tag of an HTML element as the first argument, this can be any string and is not limited to valid HTML elements.
 
 ```go
 h.E("div")
@@ -74,4 +74,22 @@ To create a fragment you must pass an empty string.
 
 ```go
 h.E("")
+```
+
+Nodes can have any number of child nodes, they may be passed as extra arguments to the `h.E()` function.
+
+```go
+h.E("header",
+    h.E("img"),
+    h.E("nav"),
+)
+```
+
+Attributes can be added to elements using `h.A{}` structs. They can be passed as extra arguments to the `h.E()` function in the same way as nodes. Note that attributes are not required to come before node arguments.
+
+```go
+h.E("img", h.A{
+    "src": "/images/aitch-logo.png",
+    "alt": "Aitch",
+})
 ```
