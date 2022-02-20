@@ -57,3 +57,21 @@ func Page(title string, users []string) string {
     ).String()
 }
 ```
+
+## Usage
+
+Most of Aitch's functions are shortened to be a single letter. This helps the templates remain terse and readable as they grow larger and the functions are repeated.
+
+### Nodes
+
+The primary building blocks of an Aitch template are Nodes. You can create them using the `h.E()` (element) function. Nodes can be HTML elements or fragments. A fragment is a Node that represents a list of HTML elements and does not itself get rendered. To create an element you must pass the tag of an HTML element as the first argument.
+
+```go
+h.E("div")
+```
+
+To create a fragment you must pass an empty string.
+
+```go
+h.E("")
+```
