@@ -110,3 +110,13 @@ h.E("div", h.A{
     },
 })
 ```
+
+Styles may be passed as a `h.A{}` struct with keys as CSS properties and values as CSS values. Note that these values must be strings.
+
+```go
+h.E("div", h.A{
+    "style": h.A{
+        "color": "red",
+        "margin": "0",
+    }
+})
