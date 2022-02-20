@@ -85,7 +85,7 @@ h.E("header",
 )
 ```
 
-Attributes can be added to elements using `h.A{}` structs. They can be passed as extra arguments to the `h.E()` function in the same way as nodes. Note that attributes are not required to come before node arguments.
+Attributes can be added to elements using `h.A{}` structs. They can be passed as extra arguments to the `h.E()` function in the same way as nodes. Note that attributes are not required to come before node arguments. Attributes passed to fragments will have no effect.
 
 ```go
 h.E("img", h.A{
