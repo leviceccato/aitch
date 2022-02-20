@@ -103,7 +103,9 @@ h.E("div", h.A{
     "class": h.A{
         "big": false,
         "red": true,
-    }, h.A{
+    },
+}, h.A{
+    "class": h.A{
         "another": true,
     },
 })
