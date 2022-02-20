@@ -85,11 +85,24 @@ h.E("header",
 )
 ```
 
-Attributes can be added to elements using `h.A{}` structs. They can be passed as extra arguments to the `h.E()` function in the same way as nodes. Note that attributes are not required to come before node arguments. Attributes passed to fragments will have no effect.
+### Attributes
+
+Attributes can be added to elements using `h.A{}` structs. They can be passed as extra arguments to the `h.E()` function in the same way as nodes. Attributes passed to fragments will have no effect. Note that attributes are not required to come before node arguments.
 
 ```go
 h.E("img", h.A{
     "src": "/images/aitch-logo.png",
     "alt": "Aitch",
+})
+```
+
+Class and style attributes keys have special handling. Classes may be passed as a string and they will behave as expected, but you can also pass a nested `h.A{}` struct with keys as classes and values as booleans to indicate if that class is active. Consecutive class definitions will be merged with the previous.
+
+```go
+h.E("div", h.A{
+    "class": h.A{
+        "big": false,
+        "red": true,
+    },
 })
 ```
