@@ -135,3 +135,13 @@ If no element is provided at the start of the string then a DIV element is assum
 ```go
 h.E(".container")
 ```
+
+Attributes besides class and id can be added as well. They must be surrounded by square brackets in the same way as CSS selectors.
+
+```go
+h.E(`
+    a.link
+    [href="/"]
+    [target="_blank"]
+`)
+```
