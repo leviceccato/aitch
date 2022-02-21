@@ -39,9 +39,9 @@ func Page(title string, users []string) string {
             h.E("head",
                 h.E("title",
                     h.If(title == "",
-                        h.T{"Page"},
+                        h.T("Page"),
                     ).Else(
-                        h.T{title},
+                        h.T(title),
                     ),
                 ),
                 h.E("meta", h.A{"charset": "utf-8"}),
