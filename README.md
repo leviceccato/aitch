@@ -146,7 +146,7 @@ h.E(`
 `)
 ```
 
-Text
+### Text
 
 Nodes can also accept text as children. To add HTML escaped text use the `h.T` type.
 
