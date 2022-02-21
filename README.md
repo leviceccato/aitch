@@ -145,3 +145,26 @@ h.E(`
     [target="_blank"]
 `)
 ```
+
+Text
+
+Nodes can also accept text as children. To add HTML escaped text use the `h.T` type.
+
+```go
+h.E("h1", h.T("On Templating and Poetry"))
+```
+
+Raw HTML can also be inserted with the `h.R` type. Be careful when using user supplied data with this type. If the data isn't sanitised before hand you may be susceptible to cross-site scripting.
+
+```go
+h.E("p", h.R("<strong>Bold</strong and <em>Beautiful</em>"))
+```
+
+A helper to create HTML comments is also available in the `h.C` type. These comments are not HTML escaped and so are also susceptible to cross-site scripting.
+
+```go
+h.E("",
+    h.C("This is a paragraph"),
+    h.E("p", h.T("A paragraph"))
+)
+```
