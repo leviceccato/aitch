@@ -154,7 +154,7 @@ Nodes can also accept text as children. To add HTML escaped text use the `h.T` t
 h.E("h1", h.T("On Templating and Poetry"))
 ```
 
-Raw HTML can also be inserted with the `h.R` type. Be careful when using user supplied data with this type. If the data isn't sanitised before hand you may be susceptible to cross-site scripting.
+Raw HTML can also be inserted with the `h.R` type. Be careful when using user supplied data with this type. If the data isn't sanitised you may be susceptible to cross-site scripting.
 
 ```go
 h.E("p", h.R("<strong>Bold</strong and <em>Beautiful</em>"))
