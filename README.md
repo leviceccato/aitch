@@ -96,6 +96,16 @@ h.E("img", h.A{
 })
 ```
 
+Booleans may be passed to `h.A{}` to determine the presence of an boolean attribute. False values will prevent the attribute from being added.
+
+```go
+isHidden := false
+
+h.E("span", h.A{
+    "hidden": isHidden
+})
+```
+
 Class and style attributes keys have special handling. Classes may be passed as a string and they will behave as expected, but you can also pass a nested `h.A{}` struct with keys as classes and values as booleans to indicate if that class is active. Consecutive class definitions will be merged with the previous.
 
 ```go
