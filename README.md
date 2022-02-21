@@ -120,3 +120,18 @@ h.E("div", h.A{
         "margin": "0",
     }
 })
+```
+
+### Complex selectors
+
+The `h.E()` function can be passed plain element tags, but it also accepts complex CSS-style selectors. Classes can be added by appending a period followed by the class name. IDs can be added by appending a number sign followed by the ID. Both of these syntaxes can be chained.
+
+```go
+h.E("div.card.big#card-1")
+```
+
+If no element is provided at the start of the string then a DIV element is assumed.
+
+```go
+h.E(".container")
+```
