@@ -168,3 +168,45 @@ h.E("",
     h.E("p", h.T("A paragraph"))
 )
 ```
+
+### Control flow
+
+Conditionally rendering HTML is possible with the `h.If` function. It takes a boolean condition as the first argument. If this evaluates to true then whatever is in the second argument will be rendered. This function is also variadic so multiple arguments can be passed after the second and those will also be rendered. They are of the type `h.D` (element data), which includes text, attributes and nodes. This is the same as what `h.E()` expects.
+
+```go
+h.E("div",
+    h.If(1 > 2, h.T("Sorry, but you're never going to see me"))
+)
+```
+
+`h.If()` may be chained with an `.ElseIf()` function. This accepts the same arguments as `h.If()` but will only be applied its condition evaluated to false. Both `h.If()` and `h.ElseIf()` can be chained with `h.Else()` which may be passed `h.D`s that will be rendered if the previous functions condition evaluated to false.
+
+
+```go
+h.E("",
+    h.E("p",
+        h.If(isActive,
+            h.E("div.active-icon",
+                h.T("Active"),
+            ),
+        ).ElseIf(state == "disabled",
+            h.E("div.disabled-icon",
+                h.T("Disabled"),
+            ),
+        ).Else(
+            h.E("div.empty-icon"),
+        ),
+    ),
+)
+```
+
+Looping is available with the generic `h.For()` function. It accepts a slice with items of type T as the first argument and a function that returns `h.D` as the second argument. This function should have 2 parameters, the first being an integer to indicate the current index of the loop (starting at 0) and the second should be for the current item in the slice with type T.
+
+```go
+h.E("",
+    h.E("h1", h.T("Front End Developers")),
+    h.For([]string{"Jon", "Lawrie", "Jade", "Levi"}, func(_ int, name string) h.D {
+        return h.E("p", h.T("Name: " + name))
+    }),
+)
+```
